@@ -2,7 +2,7 @@ var app = app || {};
 
 app = (function() {
   'use strict';
-  
+
   var wheel = function() {
 
     // set up all our vars which are shared across functions
@@ -18,10 +18,12 @@ app = (function() {
       '#e74c3c', // red
       '#16A085', // fern
       //'#95a5a6',  // grey
-      '#34495E', // wet ashpalt
+      '#CC6699', // mauve
       '#C0392B', // pomegranate
       '#e98b39' // orange
     ],
+
+    usedColors = [],
 
     numOfWedges = 10,
     wheelRadius = 230,
@@ -43,23 +45,29 @@ app = (function() {
     startY;
 
     function addWedge(n) {
-      
+
       var angle = 360 / numOfWedges;
 
       var wedge = new Kinetic.Group({
         rotation: n * 360 / numOfWedges,
       });
 
+      do
+          var wedge_num = Math.round(Math.random() * (numOfWedges-1));
+      while (usedColors.indexOf(wedge_num) != -1);
+
+      usedColors.push(wedge_num);
       var wedgeBackground = new Kinetic.Wedge({
         radius: wheelRadius,
         angle: angle,
-        fill: wedgeColors[Math.round(Math.random() * (wedgeColors.length - 1))],
+        fill: wedgeColors[wedge_num],
         //stroke: '#fff',
         //strokeWidth: 2,
         rotation: (90 + angle/2) * -1
       });
 
       wedge.add(wedgeBackground);
+      console.log(wedgeBackground.name);
 
       var text = new Kinetic.Text({
         text: '0',
@@ -73,10 +81,10 @@ app = (function() {
         listening: false
 
       });
-      
+
       text.offsetX(text.width()/2);
       text.offsetY(wheelRadius - 15);
-      
+
       wedge.add(text);
       wheel.add(wedge);
 
@@ -94,18 +102,18 @@ app = (function() {
         wheel.rotate(frame.timeDiff * angularVelocity / 1000);
       }
       lastRotation = wheel.getRotation();
-      
+
       // pointer
       var intersectedWedge = layer.getIntersection({
-        x: stage.width()/2, 
+        x: stage.width()/2,
         y: 50
       });
-      
+
       if (intersectedWedge && (!activeWedge || activeWedge._id !== intersectedWedge._id)) {
         pointerTween.reset();
         pointerTween.play();
-        activeWedge = intersectedWedge; 
-        
+        activeWedge = intersectedWedge;
+
        //$('#winner').text(activeWedge.parent.children[1].partialText);
 
       }
@@ -126,7 +134,7 @@ app = (function() {
       for (var n = 0; n < numOfWedges; n++) {
         addWedge(n);
       }
-      
+
       pointer = new Kinetic.Wedge({
         fill: '#dedede',
         //stroke: '#fff',
@@ -143,18 +151,18 @@ app = (function() {
       layer.add(wheel);
       layer.add(pointer);
       stage.add(layer);
-      
+
       pointerTween = new Kinetic.Tween({
         node: pointer,
         duration: 0.1,
         easing: Kinetic.Easings.EaseInOut,
         y: 30
       });
-      
+
       pointerTween.finish();
-      
+
       var radiusPlus2 = wheelRadius + 2;
-      
+
       /*wheel.cache({
         x: -1* radiusPlus2,
         y: -1* radiusPlus2,
@@ -164,18 +172,18 @@ app = (function() {
         x: radiusPlus2,
         y: radiusPlus2
       });*/
-      
+
       layer.draw();
 
 
       // Time to start adding the event listeners
-      
+
       function handleMovement() {
 
         var touchPosition = stage.getPointerPosition(),
             x1 = touchPosition.x - wheel.x(),
-            y1 = touchPosition.y - wheel.y();         
-      
+            y1 = touchPosition.y - wheel.y();
+
         if (controlled && target) {
 
           var x2 = startX - wheel.x(),
@@ -183,7 +191,7 @@ app = (function() {
               angle1 = Math.atan(y1 / x1) * 180 / Math.PI,
               angle2 = Math.atan(y2 / x2) * 180 / Math.PI,
               angleDiff = angle2 - angle1;
-          
+
           if ((x1 < 0 && x2 >=0) || (x2 < 0 && x1 >=0)) {
             angleDiff += 180;
           }
@@ -196,12 +204,12 @@ app = (function() {
 
       wheel.on('mousedown touchstart', function(e) {
         //e.evt.preventDefault();
-        
+
         angularVelocity = 0;
         controlled = true;
         target = e.target;
         startRotation = this.rotation();
-        
+
         var touchPosition = stage.getPointerPosition();
 
         startX = touchPosition.x;
@@ -211,12 +219,12 @@ app = (function() {
 
         document.addEventListener('mousemove', handleMovement );
         document.addEventListener('touchmove', handleMovement );
-        
+
       });
-      
+
 
       function releaseTheWheel() {
-        
+
         controlled = false;
 
         if (angularVelocity > maxAngularVelocity) {
@@ -235,18 +243,18 @@ app = (function() {
 
       document.addEventListener('mouseup', releaseTheWheel );
       document.addEventListener('touchend', releaseTheWheel );
-      
+
 
       var anim = new Kinetic.Animation(animate, layer);
       //document.getElementById('debug').appendChild(layer.hitCanvas._canvas);
 
       anim.start();
-  
+
     }
 
     init();
     containerEl.className = 'visible';
-    
+
   }
 
   return {
